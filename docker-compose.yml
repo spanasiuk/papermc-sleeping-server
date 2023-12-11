@@ -1,20 +1,18 @@
 version: '3.9'
 services:
   sleeping-server:
-    image: sleepingmctest
+    image: sleepingmc
     ports:
       - '25565:25565'
+      - '19132:19132/udp'
+      - '19132:19132/tcp'
     build:
       dockerfile: Dockerfile
     volumes:
-      - "server-volume:/server"
+      - "./server:/server"
+      - "./papermc.sh:/depencencies/papermc.sh"
     restart: unless-stopped
-
-volumes:
-  server-volume:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./server
-    external: false
+    environment:
+      - 'MC_VERSION=${MC_VERSION}'
+      - 'PAPER_BUILD=${PAPER_BUILD}'
+      - 'AUTO_UPDATE=${AUTO_UPDATE}'

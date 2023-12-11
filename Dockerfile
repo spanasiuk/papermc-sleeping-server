@@ -15,28 +15,24 @@ RUN mvn clean package
 FROM node:lts-alpine
 
 # Environment variables
-ENV MC_VERSION="latest" \
-    PAPER_BUILD="latest"
+ENV SERVER_PATH="/server"\
+    DEPENDENCIES_PATH="/depencencies"
+
+WORKDIR /
 
 RUN apk update \
     && apk add git wget jq openjdk17 \
     && rm -rf /var/lib/apt/lists/* \
-    && mkdir server
+    && mkdir ${DEPENDENCIES_PATH}
 
 ADD "https://github.com/vincss/mcsleepingserverstarter/releases/latest" skipcache
 
-RUN git clone https://github.com/vincss/mcsleepingserverstarter.git server
+RUN git clone https://github.com/vincss/mcsleepingserverstarter.git ${DEPENDENCIES_PATH}
 
-WORKDIR server
+WORKDIR ${DEPENDENCIES_PATH}
 
 RUN npm install
 
-ADD papermc.sh .
+COPY --from=server-stopper-build /var/tmp/mcEmptyServerStopper/target/mcEmptyServerStopper-*.jar .
 
-ADD "https://papermc.io/api/v2/projects/paper" skipcache
-
-RUN sh papermc.sh
-
-COPY --from=server-stopper-build /var/tmp/mcEmptyServerStopper/target/mcEmptyServerStopper-*.jar ./plugins/
-
-ENTRYPOINT exec npm start
+ENTRYPOINT exec sh papermc.sh
